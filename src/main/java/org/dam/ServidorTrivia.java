@@ -206,6 +206,7 @@ public class ServidorTrivia {
             pos++;
         }
         
+        broadcast("FIN_JUEGO");
         System.out.println("\nPartida finalizada. Usa START para nueva partida.");
     }
     
@@ -257,7 +258,7 @@ public class ServidorTrivia {
         broadcast("    █    ░░                          ░░    █");
         broadcast("    █    ░░   MACHU PICCHU LOADING   ░░    █");
         broadcast("    █    ░░   ████████████░░░░░░░░   ░░    █");
-        broadcast("    █    ░░          69%             ░░    █");
+        broadcast("    █    ░░          67%             ░░    █");
         broadcast("    █    ░░                          ░░    █");
         broadcast("    █    ░░░░░░░░░░░░░░░░░░░░░░░░░░░░    █");
         broadcast("    █                                     █");
@@ -357,6 +358,10 @@ public class ServidorTrivia {
     public static boolean isPreguntaPeruActiva() {
         return preguntaPeruActiva;
     }
+
+    public static boolean hayPreguntaActiva() {
+        return partidaEnCurso || preguntaPeruActiva;
+    }
     
     // Registrar respuesta de un cliente
     public static synchronized void registrarRespuesta(String nombreUsuario, String respuesta) {
@@ -380,13 +385,33 @@ public class ServidorTrivia {
             }
             int puntos = Math.max(10 - (posicion - 1) * 2, 2); // Mínimo 2 puntos
             puntuacionesGlobales.merge(nombreUsuario, puntos, Integer::sum);
-            
+
             System.out.println(nombreUsuario + " respondió " + respuesta + " - CORRECTO! (+" + puntos + " pts)");
         } else {
             System.out.println(nombreUsuario + " respondió " + respuesta + " - Incorrecto");
         }
+
+        // Verificar si todos los jugadores han respondido
+        verificarTodosRespondieron();
     }
     
+    // Verificar si todos los jugadores han respondido para avanzar automáticamente
+    private static void verificarTodosRespondieron() {
+        for (ManejadorClienteTrivia cliente : clientes) {
+            if (cliente.getNombreUsuario() != null && cliente.isPuedeResponder()) {
+                return; // Alguien no ha respondido aún
+            }
+        }
+
+        // Todos respondieron - mostrar ranking y avanzar
+        new Thread(() -> {
+            try { Thread.sleep(1000); } catch (InterruptedException ignored) {}
+            mostrarRankingPregunta();
+            preguntaActual++;
+            enviarPreguntaActual();
+        }).start();
+    }
+
     // Broadcast a todos los clientes
     public static void broadcast(String mensaje) {
         for (ManejadorClienteTrivia cliente : clientes) {

@@ -93,7 +93,17 @@ public class ClienteTrivia {
             try {
                 String mensaje;
                 while (conectado && (mensaje = entrada.readLine()) != null) {
-                    System.out.println(mensaje);
+                    if (mensaje.equals("FIN_JUEGO")) {
+                        System.out.println("\n=== EL JUEGO HA TERMINADO ===");
+                        conectado = false;
+                        break;
+                    } else if (mensaje.startsWith("ERROR:")) {
+                        System.out.println("[ERROR] " + mensaje.substring(6));
+                    } else if (mensaje.startsWith("ESPERA:")) {
+                        System.out.println("[ESPERA] " + mensaje.substring(7));
+                    } else {
+                        System.out.println(mensaje);
+                    }
                 }
             } catch (IOException e) {
                 if (conectado) {

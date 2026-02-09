@@ -65,7 +65,11 @@ public class ManejadorClienteTrivia implements Runnable {
 
                 // Validar que sea una respuesta válida (A, B, C o D)
                 if (mensajeUpper.length() == 1 && "ABCD".contains(mensajeUpper)) {
-                    if (puedeResponder) {
+                    if (!ServidorTrivia.hayPreguntaActiva()) {
+                        salida.println("ESPERA:Espera a la siguiente pregunta");
+                    } else if (!puedeResponder) {
+                        salida.println("ERROR:Ya has respondido a esta pregunta");
+                    } else {
                         puedeResponder = false; // Solo puede responder una vez por pregunta
 
                         // Verificar si es pregunta especial de Perú o normal
@@ -76,11 +80,9 @@ public class ManejadorClienteTrivia implements Runnable {
                         }
                         salida.println("Respuesta registrada: " + mensajeUpper);
                         salida.println("Esperando resultados...");
-                    } else {
-                        salida.println("Ya has respondido a esta pregunta o no hay pregunta activa.");
                     }
                 } else {
-                    salida.println("Respuesta inválida. Usa solo A, B, C o D.");
+                    salida.println("ERROR:Respuesta invalida. Usa A, B, C o D");
                 }
             }
             
@@ -101,6 +103,10 @@ public class ManejadorClienteTrivia implements Runnable {
         return nombreUsuario;
     }
     
+    public boolean isPuedeResponder() {
+        return puedeResponder;
+    }
+
     public void setPuedeResponder(boolean puede) {
         this.puedeResponder = puede;
     }
